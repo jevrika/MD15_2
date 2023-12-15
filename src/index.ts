@@ -32,6 +32,18 @@ app.get('/books', async (req: Request<{}, {}, Book>, res) => {
   });
 });
 
+app.get('/books/:id', async (req: Request< { id: string } ,{}, {}, Book>, res) => {
+  connection.query(`SELECT * FROM books WHERE id = '${req.params.id}'`, (error, results) => {
+    if (error) {
+      console.log(error)
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+
 app.delete('/books/:id', async (req: Request<{ id: string }, {}, {}>, res) => {
   connection.query(`DELETE FROM books WHERE id = '${req.params.id}'`, (error, results) => {
     if (error) {
@@ -48,10 +60,10 @@ app.post('/books', async (req, res) => {
   console.log(req.body);
 
   const FormData = z.object({
-    name: z.string().min(2, { message: 'Must be 2 or more characters long' }).max(255, { message: 'Must be 255 or less characters long' }),
-    author: z.string().min(2, { message: 'Must be 2 or more characters long' }).max(255, { message: 'Must be 255 or less characters long' }),
-    genre: z.string().min(2, { message: 'Must be 2 or more characters long' }).max(255, { message: 'Must be 255 or less characters long' }),
-    year: z.coerce.number().gte(1990, { message: 'Number must be greater than or equal to 1990' }).lte(2050, { message: 'Number must be less than or equal to 2050' }),
+    name: z.string().min(2, { message: 'Name must be 2 or more characters long' }).max(255, { message: 'Name must be 255 or less characters long' }).refine((val) => val.match(/^[A-Ža-ž]/g), {message: "Name must contain at least 2 letters"}),
+    author: z.string().min(2, { message: 'Author must be 2 or more characters long' }).max(255, { message: 'Author must be 255 or less characters long' }),
+    genre: z.string().min(2, { message: 'Genre must be 2 or more characters long' }).max(255, { message: 'Genre must be 255 or less characters long' }),
+    year: z.coerce.number().gte(1800, { message: 'Year must be greater than or equal to 1800' }).lte(2050, { message: 'Year must be less than or equal to 2050' }),
   });
 
   if (!name || !author || !genre || !year) {
